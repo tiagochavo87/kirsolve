@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "kirsolve"
+version = "0.1.0"
+description = "Resolucao de alelos KIR ambiguos a partir de saidas do PING e do kir-mapper"
+requires-python = ">=3.10"
+dependencies = ["pandas>=2.0", "numpy>=1.24", "openpyxl>=3.1"]
+
+[project.scripts]
+kirsolve = "kirsolve.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]

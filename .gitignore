@@ -1,0 +1,30 @@
+# ambiente
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+*.egg-info/
+.DS_Store
+
+# saidas
+resultados*/
+benchmark/
+*.log
+
+# DADOS - nunca versionar
+data/
+dados/
+*.xlsx
+*.xls
+*.bam
+*.cram
+*.crai
+*.fq.gz
+*.fastq.gz
+verdade*.tsv
+truth*.tsv
+ipd_kir_allelelist.txt
+
+# excecoes: dados sinteticos de exemplo podem ir
+!exemplo/**
+!config/exemplo_priors.tsv

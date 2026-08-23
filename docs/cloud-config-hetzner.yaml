@@ -1,0 +1,71 @@
+#cloud-config
+package_update: true
+package_upgrade: true
+
+packages:
+  - build-essential
+  - cmake
+  - git
+  - wget
+  - curl
+  - unzip
+  - bzip2
+  - pigz
+  - default-jre
+  - docker.io
+  - python3-pip
+  - python3-venv
+  - python3-dev
+  - tmux
+  - htop
+  - ncdu
+  - ufw
+  - software-properties-common
+  - libbz2-dev
+  - liblzma-dev
+  - libcurl4-openssl-dev
+  - libssl-dev
+  - zlib1g-dev
+  - libncurses-dev
+
+runcmd:
+  # usuario de trabalho, herdando a chave SSH que voce selecionou no painel
+  - adduser --disabled-password --gecos "" kir
+  - mkdir -p /home/kir/.ssh
+  - cp /root/.ssh/authorized_keys /home/kir/.ssh/authorized_keys
+  - chown -R kir:kir /home/kir/.ssh
+  - chmod 700 /home/kir/.ssh
+  - chmod 600 /home/kir/.ssh/authorized_keys
+
+  # docker
+  - systemctl enable --now docker
+  - usermod -aG docker kir
+
+  # apptainer (necessario para o PING)
+  - add-apt-repository -y ppa:apptainer/ppa
+  - apt-get update
+  - apt-get install -y apptainer
+
+  # swap: protege contra pico de memoria no build do kir-mapper
+  - fallocate -l 8G /swapfile
+  - chmod 600 /swapfile
+  - mkswap /swapfile
+  - swapon /swapfile
+  - echo '/swapfile none swap sw 0 0' >> /etc/fstab
+
+  # area de trabalho
+  - mkdir -p /dados/ref /dados/bam /dados/fastq /dados/ping /dados/kirmapper /dados/kirsolve /dados/logs /dados/tools
+  - chown -R kir:kir /dados
+
+  # firewall
+  - ufw allow OpenSSH
+  - ufw --force enable
+
+  # so login por chave
+  - sed -i -E "s/^#?PasswordAuthentication.*/PasswordAuthentication no/" /etc/ssh/sshd_config
+  - systemctl restart ssh
+
+  # marcador de conclusao
+  - touch /root/CLOUD_INIT_OK
+
+final_message: "Servidor pronto em $UPTIME segundos. Conecte com: ssh kir@IP"

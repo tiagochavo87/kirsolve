@@ -1,0 +1,41 @@
+cff-version: 1.2.0
+title: "kirsolve: cross-tool resolution of ambiguous KIR allele calls"
+message: "If you use this software, please cite it as below."
+type: software
+authors:
+  - family-names: Chaves
+    given-names: Tiago Fernando
+version: 0.1.0
+license: MIT
+abstract: >-
+  kirsolve reconciles KIR allele calls from PING and kir-mapper, reducing
+  ambiguity through cross-tool intersection, copy-number constraints and
+  resolution-level collapsing, and separates deterministic results from
+  model-based inference.
+keywords:
+  - KIR
+  - immunogenetics
+  - allele calling
+  - PING
+  - kir-mapper
+references:
+  - type: article
+    authors:
+      - family-names: Castelli
+        given-names: Erick C.
+    title: "kir-mapper: A Toolkit for KIR Genotyping From Short-Read Second-Generation Sequencing Data"
+    journal: HLA
+    year: 2025
+    doi: 10.1111/tan.70092
+  - type: article
+    authors:
+      - family-names: Zhou
+        given-names: Ying
+      - family-names: Song
+        given-names: Li
+      - family-names: Li
+        given-names: Heng
+    title: "Full-resolution HLA and KIR gene annotations for human genome assemblies"
+    journal: Genome Research
+    year: 2024
+    doi: 10.1101/gr.278985.124

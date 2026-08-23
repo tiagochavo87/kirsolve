@@ -1,0 +1,23 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - run: pip install -e . pytest
+      - run: pytest -q
+      - name: pipeline completo em dados sinteticos
+        run: |
+          python scripts/gerar_exemplo.py exemplo --amostras 60
+          python -m kirsolve run exemplo/planilha_exemplo.xlsx -o /tmp/out --sheet-tool "Sheet5=kir-mapper"
+          python -m kirsolve benchmark exemplo/ping exemplo/kirmapper \
+            --truth exemplo/verdade.tsv -o /tmp/bench --sample-regex '^(SIM\d+)'
