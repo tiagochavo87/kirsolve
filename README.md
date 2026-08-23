@@ -46,6 +46,57 @@ prior domina, e o pipeline avisa e suprime as chamadas `provavel_EM`.
 
 ---
 
+## Interface na web (GitHub Pages)
+
+A interface está publicada em `https://SEU_USUARIO.github.io/kirsolve/` e roda
+**inteiramente dentro do navegador**, via stlite (Streamlit compilado para
+WebAssembly com Pyodide). Não há servidor: o GitHub Pages serve apenas arquivos
+estáticos, e o Python executa na máquina de quem acessa.
+
+**A planilha nunca é enviada a servidor nenhum.** Foi por isso que escolhemos
+esta arquitetura em vez do Streamlit Community Cloud, onde os dados subiriam
+para um servidor de terceiros.
+
+⚠ Mesmo assim, para dado de paciente vale a cautela: a segurança do stlite em
+contexto de dado sensível ainda não foi auditada de forma independente. Para
+dado identificável, prefira rodar localmente.
+
+Custo: cerca de 50 MB baixados na primeira visita (runtime Pyodide + pandas +
+numpy). Depois disso funciona até offline.
+
+### Como publicar
+
+1. Settings → Pages → Source: **GitHub Actions**
+2. `git push` na branch `main`
+
+O workflow `.github/workflows/pages.yml` gera o wheel do kirsolve a cada push e
+publica junto com a página. Isso garante que a interface no ar sempre usa o
+código mais recente — sem esse passo, o site ficaria preso numa versão antiga.
+
+---
+
+## Interface gráfica local (para quem não usa linha de comando)
+
+```bash
+pip install -e . streamlit
+streamlit run app.py
+```
+
+Abre no navegador. O usuário arrasta a planilha, confere o que foi lido, aperta
+um botão e baixa o relatório em Excel — sem digitar comando nenhum.
+
+A interface mostra as amostras, os genes e as ferramentas detectadas **antes**
+de rodar, porque o erro mais comum é o nome da amostra não casar entre as duas
+ferramentas, e isso aparece nessa conferência.
+
+Toda a análise usa as mesmas funções da linha de comando (`load_sources`,
+`consolidate`, `cross_tool`, `resolve_cohort`), então interface e CLI nunca
+divergem.
+
+Instruções passo a passo para o usuário final: `EXECUTAR_INTERFACE.txt`.
+
+---
+
 ## Comece por aqui (sem precisar de dados)
 
 O repositório inclui um gerador de dados sintéticos, então dá para rodar tudo

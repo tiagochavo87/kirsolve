@@ -1,0 +1,56 @@
+COMO ABRIR A INTERFACE GRAFICA DO KIRSOLVE
+==========================================
+
+PRIMEIRA VEZ (so uma vez, no computador):
+
+  1. Abra o Prompt de Comando ou o PowerShell
+  2. Va ate a pasta do kirsolve:
+
+         cd X:\AnaGio
+
+  3. Instale:
+
+         pip install -e .
+         pip install streamlit
+
+
+PARA USAR (sempre que quiser):
+
+  1. Abra o Prompt de Comando
+  2. Va ate a pasta:
+
+         cd X:\AnaGio
+
+  3. Rode:
+
+         streamlit run app.py
+
+  4. O navegador abre sozinho. Se nao abrir, copie o endereco que
+     aparecer na tela (algo como http://localhost:8501) e cole no navegador.
+
+  5. Para fechar: volte ao Prompt de Comando e aperte Ctrl+C.
+
+
+NA INTERFACE:
+
+  1. Arraste a planilha (ou os arquivos das ferramentas) para a area de envio
+  2. Confira a secao "O que foi lido" - amostras, genes e ferramentas
+  3. Clique em "Rodar analise"
+  4. Veja os resultados nas abas e baixe o Excel
+
+
+SE DER PROBLEMA:
+
+  "streamlit nao e reconhecido"
+     -> feche o Prompt, abra de novo e repita o pip install streamlit
+
+  "Nenhuma chamada de alelo foi reconhecida"
+     -> a planilha precisa de uma coluna com o nome da amostra e colunas
+        com nomes de genes KIR (KIR2DL1, KIR3DL3, etc)
+
+  "So encontrei uma ferramenta"
+     -> faltou enviar os arquivos da outra. O cruzamento entre PING e
+        kir-mapper e o que mais reduz a ambiguidade.
+
+  Resultado vazio ou amostras que nao casam
+     -> ajuste "Como encurtar o nome da amostra" na barra lateral
