@@ -6,8 +6,27 @@ build-backend = "setuptools.build_meta"
 name = "kirsolve"
 version = "0.1.0"
 description = "Resolucao de alelos KIR ambiguos a partir de saidas do PING e do kir-mapper"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [{name = "Tiago Fernando Chaves"}]
+keywords = ["KIR", "immunogenetics", "allele calling", "PING", "kir-mapper"]
+classifiers = [
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+]
 requires-python = ">=3.10"
 dependencies = ["pandas>=2.0", "numpy>=1.24", "openpyxl>=3.1"]
+
+[project.optional-dependencies]
+# A interface grafica e opcional: quem usa so a linha de comando nao precisa
+# instalar o Streamlit, que puxa dezenas de dependencias.
+app = ["streamlit>=1.30"]
+
+[project.urls]
+Repository = "https://github.com/tiagochavo87/kirsolve"
+Interface = "https://tiagochavo87.github.io/kirsolve/"
 
 [project.scripts]
 kirsolve = "kirsolve.cli:main"

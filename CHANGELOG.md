@@ -96,6 +96,36 @@ erro, porque não havia aviso. Agora, quando o cabeçalho não traz locus mas te
 colunas `Sample` e `Calls`, o gene é inferido do nome do arquivo ou das pastas
 acima dele.
 
+**A região de extração do CRAM estava errada.**
+O intervalo `chr19:54.600.000–55.400.000` foi definido por estimativa. O
+`select_dna.bed` do próprio kir-mapper define `chr19:54.114.000–54.905.000` —
+faltavam 486 kb na ponta centromérica, onde ficam KIR3DL3, KIR2DS2, KIR2DL2/3 e
+KIR2DL5B.
+
+O efeito não era um erro visível: esses genes apareciam com copy number zero em
+100% das amostras, o que se confunde com ausência biológica, já que ausência de
+gene KIR é normal. A razão de cobertura do KIR2DL5AB saltou de 0,14 (máximo em
+37 amostras, abaixo do corte de 0,25) para valores entre 0,43 e 1,14 depois da
+correção.
+
+O BED também inclui 43 contigs alternativos de chr19 e duas janelas em chr6,
+antes ignorados.
+
+**Fonte dos dados trocada de FTP para S3.**
+O FTP da ENA limita conexões e derruba transferências longas com `Broken pipe`:
+7 amostras em 8h34, com dezenas de retentativas. O bucket público
+`1000genomes` da AWS serve os mesmos arquivos sem esse limite — 40 amostras em
+9 minutos.
+
+Quando o FTP é inevitável, o `.crai` precisa ser baixado antes e passado com
+`-X`: sem isso o samtools abre duas conexões simultâneas (CRAM + índice) e a
+segunda é recusada.
+
+**Varredura de leituras não mapeadas removida.**
+O `samtools view -f 4` percorria os 18 GB de cada CRAM atrás de leituras não
+mapeadas, e 80% delas eram descartadas depois por serem órfãs — o par ficara
+fora do recorte. Custava horas e não acrescentava nada ao resultado.
+
 ### Limitações conhecidas
 
 - O EM exige coorte grande. Abaixo de ~20 amostras informativas por locus as
