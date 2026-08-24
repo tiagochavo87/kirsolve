@@ -125,11 +125,37 @@ foreach ($p in @(Get-ChildItem -Path $Raiz -Recurse -Directory -Force -ErrorActi
     Add-Acao "APAGAR" "$rel\" "-" "gerado automaticamente; o pip recria"
 }
 
-# ---------------------------------------------------------------- 4. docs
-$infra = @("cloud-config-hetzner.yaml", "RUNBOOK_servidor.md")
-foreach ($f in $infra) {
+# ---------------------------------------------------------------- 4. destinos fixos
+# Arquivos baixados um a um caem na raiz. Sem isso, o README referencia
+# assets/logo.jpeg e .github/workflows/ci.yml que nunca existiram, e os
+# links quebram no GitHub.
+$destinos = @{
+    "logo.jpeg"                 = "assets"
+    "Gemini_Generated_Image_5ncme85ncme85ncm.jpeg" = "assets"
+    "ci.yml"                    = ".github\workflows"
+    "pages.yml"                 = ".github\workflows"
+    "index.html"                = "docs"
+    "validacao.md"              = "docs"
+    "cloud-config-hetzner.yaml" = "docs"
+    "RUNBOOK_servidor.md"       = "docs"
+    "launch.json"               = ".vscode"
+    "settings.json"             = ".vscode"
+    "test_kirsolve.py"          = "tests"
+    "nomenclature.py"           = "src\kirsolve"
+    "parsing.py"                = "src\kirsolve"
+    "loaders.py"                = "src\kirsolve"
+    "em.py"                     = "src\kirsolve"
+    "resolve.py"                = "src\kirsolve"
+    "priors.py"                 = "src\kirsolve"
+    "report.py"                 = "src\kirsolve"
+    "validate.py"               = "src\kirsolve"
+    "cli.py"                    = "src\kirsolve"
+}
+foreach ($f in $destinos.Keys) {
     if (Test-Path (Join-Path $Raiz $f)) {
-        Add-Acao "MOVER" $f "docs\$f" "infraestrutura, nao faz parte do pacote Python"
+        $pasta = $destinos[$f]
+        $nomeFinal = if ($f -like "Gemini_Generated*") { "logo.jpeg" } else { $f }
+        Add-Acao "MOVER" $f "$pasta\$nomeFinal" "o README e o codigo esperam esse caminho"
     }
 }
 
@@ -183,7 +209,9 @@ Write-Host "=== Conferencia ===" -ForegroundColor Cyan
 
 $obrigatorios = @(
     "pyproject.toml", "README.md", "CHANGELOG.md", "LICENSE", "CITATION.cff",
-    ".gitignore", "Dockerfile", "Makefile",
+    ".gitignore", "Dockerfile", "Makefile", "app.py",
+    "assets\logo.jpeg", "docs\index.html", "docs\validacao.md",
+    ".github\workflows\ci.yml", ".github\workflows\pages.yml",
     "src\kirsolve\__init__.py", "src\kirsolve\cli.py", "src\kirsolve\loaders.py",
     "src\kirsolve\validate.py", "src\kirsolve\resolve.py", "src\kirsolve\em.py",
     "src\kirsolve\nomenclature.py", "src\kirsolve\parsing.py",
@@ -200,6 +228,36 @@ if ($faltando.Count -eq 0) {
 } else {
     Write-Host "  Faltando (baixe da conversa e coloque no lugar):" -ForegroundColor Yellow
     $faltando | ForEach-Object { Write-Host "    $_" -ForegroundColor Yellow }
+}
+
+# links do README apontam para arquivos que existem?
+Write-Host ""
+Write-Host "  Conferindo os links do README..." -NoNewline
+$readme = Join-Path $Raiz "README.md"
+$linksQuebrados = @()
+if (Test-Path $readme) {
+    $texto = Get-Content $readme -Raw
+    foreach ($m in [regex]::Matches($texto, '\]\(([^)]+)\)')) {
+        $alvo = $m.Groups[1].Value
+        if ($alvo -match '^(https?://|#)') { continue }
+        if (-not (Test-Path (Join-Path $Raiz ($alvo -replace '/', '\')))) {
+            $linksQuebrados += $alvo
+        }
+    }
+    foreach ($m in [regex]::Matches($texto, '<img src="([^"]+)"')) {
+        $alvo = $m.Groups[1].Value
+        if ($alvo -match '^https?://') { continue }
+        if (-not (Test-Path (Join-Path $Raiz ($alvo -replace '/', '\')))) {
+            $linksQuebrados += "imagem: $alvo"
+        }
+    }
+}
+if ($linksQuebrados.Count -eq 0) {
+    Write-Host " todos ok." -ForegroundColor Green
+} else {
+    Write-Host ""
+    Write-Host "  LINKS QUEBRADOS no README (vao dar 404 no GitHub):" -ForegroundColor Red
+    $linksQuebrados | Sort-Object -Unique | ForEach-Object { Write-Host "    $_" -ForegroundColor Red }
 }
 
 # varredura por dado sensivel remanescente
