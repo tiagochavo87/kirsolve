@@ -43,8 +43,12 @@ jobs:
           cp assets/logo.jpeg _site/logo.jpeg
           cp src/kirsolve/*.py _site/src/kirsolve/
 
+      # enablement: true habilita o Pages via API na primeira execucao, sem
+      # depender do passo manual Settings -> Pages -> Source: GitHub Actions.
       - name: Configurar Pages
         uses: actions/configure-pages@v5
+        with:
+          enablement: true
 
       - name: Publicar artefato
         uses: actions/upload-pages-artifact@v3
