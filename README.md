@@ -1,4 +1,21 @@
-# kirsolve
+<div align="center">
+
+<img src="assets/logo.jpeg" alt="kirsolve" width="420">
+
+**Resolução de alelos KIR ambíguos a partir das saídas do PING e do kir-mapper**
+
+[![CI](https://github.com/tiagochavo87/kirsolve/actions/workflows/ci.yml/badge.svg)](https://github.com/tiagochavo87/kirsolve/actions/workflows/ci.yml)
+[![Interface](https://img.shields.io/badge/interface-no%20navegador-3f7f6f)](https://tiagochavo87.github.io/kirsolve/)
+[![Licença](https://img.shields.io/badge/licen%C3%A7a-MIT-blue)](LICENSE)
+[![Python](https://img.shields.io/badge/python-3.10%2B-blue)](pyproject.toml)
+
+[Interface na web](https://tiagochavo87.github.io/kirsolve/) ·
+[Validação](docs/validacao.md) ·
+[Histórico de correções](CHANGELOG.md)
+
+</div>
+
+---
 
 Pipeline em Python para levantar e identificar os alelos KIR mais prováveis nos
 casos em que o **PING** e o **kir-mapper** não chegaram a uma chamada única —
@@ -8,6 +25,11 @@ ambíguo porque não são discrimináveis com a cobertura disponível.
 O pipeline **não substitui** as ferramentas: ele lê as saídas das duas, cruza as
 evidências, aplica as restrições que cada uma sozinha não aplica, e só então usa
 um modelo estatístico para desempatar o que sobrou.
+
+**Validado** contra 40 amostras do 1000 Genomes com montagem de leitura longa do
+HPRC como padrão-ouro: **89,9% de acurácia** nos loci em que o alelo verdadeiro
+consta do IPD-KIR, e **70,3% de acerto no desempate estatístico** contra 32,5%
+ao acaso. Detalhes e limitações em [`docs/validacao.md`](docs/validacao.md).
 
 ---
 
@@ -48,10 +70,11 @@ prior domina, e o pipeline avisa e suprime as chamadas `provavel_EM`.
 
 ## Interface na web (GitHub Pages)
 
-A interface está publicada em `https://SEU_USUARIO.github.io/kirsolve/` e roda
-**inteiramente dentro do navegador**, via stlite (Streamlit compilado para
-WebAssembly com Pyodide). Não há servidor: o GitHub Pages serve apenas arquivos
-estáticos, e o Python executa na máquina de quem acessa.
+Depois de publicada (ver abaixo), a interface fica em
+**https://tiagochavo87.github.io/kirsolve/** e roda **inteiramente dentro do
+navegador**, via stlite (Streamlit compilado para WebAssembly com Pyodide).
+Não há servidor: o GitHub Pages serve apenas arquivos estáticos, e o Python
+executa na máquina de quem acessa.
 
 **A planilha nunca é enviada a servidor nenhum.** Foi por isso que escolhemos
 esta arquitetura em vez do Streamlit Community Cloud, onde os dados subiriam
@@ -119,7 +142,7 @@ anotação `$` de variante nova, cabeçalho deslocado e ambiguidade com `/`.
 ## Instalação
 
 ```bash
-git clone <seu-repo> kirsolve && cd kirsolve
+git clone https://github.com/tiagochavo87/kirsolve.git && cd kirsolve
 python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -e .
 pytest -q          # 20 testes
