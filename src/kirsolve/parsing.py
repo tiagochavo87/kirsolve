@@ -40,10 +40,6 @@ from .nomenclature import (
 GENOTYPE_SEPARATORS = [";", "|", "  ", " "]
 
 
-class CallParseWarning(str):
-    pass
-
-
 def _split_genotypes(text: str) -> list[str]:
     """Divide a string em genotipos alternativos sem quebrar dentro de um '+'."""
     # espacos ao redor de '+' e '/' sao cosmeticos e nao separam genotipos

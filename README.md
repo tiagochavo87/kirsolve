@@ -92,9 +92,11 @@ numpy). Depois disso funciona até offline.
 1. Settings → Pages → Source: **GitHub Actions**
 2. `git push` na branch `main`
 
-O workflow `.github/workflows/pages.yml` gera o wheel do kirsolve a cada push e
-publica junto com a página. Isso garante que a interface no ar sempre usa o
-código mais recente — sem esse passo, o site ficaria preso numa versão antiga.
+O workflow `.github/workflows/pages.yml` publica `app.py`, `assets/logo.jpeg` e
+`src/kirsolve/` a cada push em `main` — sem etapa de build: o stlite carrega os
+mesmos arquivos-fonte que rodam localmente, então a interface no ar nunca
+diverge do código do pacote. Sem esse passo, o site ficaria preso numa versão
+antiga.
 
 ---
 

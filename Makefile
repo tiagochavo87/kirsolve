@@ -24,16 +24,17 @@ docker-run:
 		run $(INPUT) -o $(OUT) --sheet-tool Sheet5=kir-mapper
 
 site:
-	pip install build
-	python -m build --wheel
-	cp dist/kirsolve-*-py3-none-any.whl docs/
-	cp app.py assets/logo.jpeg docs/
-	@echo "Agora: python -m http.server -d docs 8000"
+	rm -rf _site
+	mkdir -p _site/src/kirsolve
+	cp docs/index.html _site/index.html
+	cp app.py _site/app.py
+	cp assets/logo.jpeg _site/logo.jpeg
+	cp src/kirsolve/*.py _site/src/kirsolve/
+	@echo "Agora: python -m http.server -d _site 8000"
 	@echo "E abra http://localhost:8000"
 
 app:
 	streamlit run app.py
 
 clean:
-	rm -rf $(OUT) .pytest_cache **/__pycache__ dist build
-	rm -f docs/*.whl docs/app.py docs/logo.jpeg
+	rm -rf $(OUT) .pytest_cache **/__pycache__ dist build _site

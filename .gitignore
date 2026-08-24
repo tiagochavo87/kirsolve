@@ -25,13 +25,16 @@ verdade*.tsv
 truth*.tsv
 ipd_kir_allelelist.txt
 
-# docs/ e montado pelo CI a cada push (wheel + app + logo). Versionar copias
-# aqui garante que uma hora o site publicado fica com codigo velho.
-docs/*.whl
-docs/app.py
-docs/logo.jpeg
+# site do GitHub Pages: _site/ e montado pelo workflow pages.yml a cada push,
+# espelhando app.py + src/kirsolve/ sem build. docs/index.html e a unica
+# fonte versionada; o resto e gerado.
+_site/
 dist/
 build/
+
+# saidas de benchmark empacotadas (ver CHANGELOG / RUNBOOK) - nunca versionar,
+# mesmo compactadas
+resultados_final*.tar.gz
 
 # excecoes: dados sinteticos de exemplo podem ir
 !exemplo/**

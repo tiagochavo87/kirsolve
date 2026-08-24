@@ -473,15 +473,6 @@ def _processar_quadros(quadros, sample_regex: str) -> pd.DataFrame:
     return records_to_frame(records)
 
 
-def _guess_tool_from_sheet(sheet: str) -> str | None:
-    s = sheet.lower()
-    if "ping" in s and "mapper" not in s:
-        return "PING"
-    if "mapper" in s and "ping" not in s:
-        return "kir-mapper"
-    return None
-
-
 def records_to_frame(records: list[Record]) -> pd.DataFrame:
     rows = []
     for r in records:

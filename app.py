@@ -171,7 +171,13 @@ O programa reconhece o formato sozinho. Não é preciso renomear nada.
 
 # ------------------------------------------------------------------ leitura
 
-pasta = Path(tempfile.mkdtemp(prefix="kirsolve_"))
+# Um diretorio por sessao, nao por rerun: o Streamlit reexecuta o script inteiro
+# a cada interacao do usuario, e um mkdtemp() direto aqui acumularia uma pasta
+# orfa por interacao. Guardado em session_state, o TemporaryDirectory e limpo
+# sozinho quando a sessao termina (seu finalizador roda no garbage collection).
+if "workdir" not in st.session_state:
+    st.session_state.workdir = tempfile.TemporaryDirectory(prefix="kirsolve_")
+pasta = Path(st.session_state.workdir.name)
 for a in arquivos:
     (pasta / a.name).write_bytes(a.getbuffer())
 

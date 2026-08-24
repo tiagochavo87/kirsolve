@@ -5,7 +5,10 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
+import pandas as pd
+
 from kirsolve.em import posterior_genotypes, run_em
+from kirsolve.loaders import load_sources
 from kirsolve.nomenclature import (
     Allele,
     canonical_locus,
@@ -15,6 +18,7 @@ from kirsolve.nomenclature import (
 )
 from kirsolve.parsing import parse_call_string, split_composite_locus
 from kirsolve.resolve import ambiguity_profile, safe_resolution
+from kirsolve.validate import _chi2_sf, carregar_verdade
 
 
 # ------------------------------------------------------------ nomenclatura
@@ -152,3 +156,111 @@ def test_em_desambigua_com_a_coorte():
     freqs, _ = run_em(sets, pseudocount=0.01)
     post = posterior_genotypes(sets[-1], freqs)
     assert post[0][0] == certo and post[0][1] > 0.95
+
+
+# ------------------------------------------------------------ leitura (loaders)
+#
+# Cobre a parte mais heuristica do pipeline - deteccao automatica de layout -
+# que e onde a maioria dos bugs do CHANGELOG apareceu (deslocamento de
+# cabecalho, tabelas de locus unico ignoradas silenciosamente).
+
+def test_layout_calls(tmp_path):
+    df = pd.DataFrame([{
+        "Sample": "S1", "software": "PING",
+        "KIR2DL1_Copy_number": 2, "KIR2DL1_Calls": "KIR2DL1*00101+KIR2DL1*00201",
+        "KIR2DL2_Copy_number": 1, "KIR2DL2_Calls": "KIR2DL2*00101",
+    }])
+    p = tmp_path / "ping_calls.csv"
+    df.to_csv(p, index=False)
+
+    out = load_sources([p])
+    r1 = out[(out["sample"] == "S1") & (out["locus"] == "KIR2DL1")].iloc[0]
+    assert r1["tool"] == "PING" and r1["copy_number"] == 2 and r1["n_candidates"] == 1
+    r2 = out[(out["sample"] == "S1") & (out["locus"] == "KIR2DL2")].iloc[0]
+    assert r2["copy_number"] == 1 and r2["n_candidates"] == 1
+
+
+def test_layout_matrix_cruzado_com_cn(tmp_path):
+    """Arquivo de copy number + arquivo de matriz separados (como o PING emite:
+    manualCopyNumberFrame.csv e finalAlleleCalls.csv), a mesma ferramenta."""
+    cn = pd.DataFrame([{"Sample": "S1", "KIR2DL1": 2, "KIR2DL2": 1, "KIR2DL3": 2}])
+    cn.to_csv(tmp_path / "ping_cn.csv", index=False)
+
+    matrix = pd.DataFrame([{
+        "Sample": "S1", "KIR2DL1": "KIR2DL1*00101", "KIR2DL2": "KIR2DL2*00101",
+        "KIR2DL3": "KIR2DL3*00101",
+    }])
+    matrix.to_csv(tmp_path / "ping_matrix.csv", index=False)
+
+    out = load_sources([tmp_path])
+    row = out[(out["sample"] == "S1") & (out["locus"] == "KIR2DL2")].iloc[0]
+    assert row["copy_number"] == 1
+    assert str(next(iter(row["genotypes"]))[0]) == "KIR2DL2*00101"
+
+
+def test_layout_wide_planilha_limpa(tmp_path):
+    df = pd.DataFrame([{
+        "Sample": "S1", "tool": "kir-mapper",
+        "copy_number_KIR2DL1": 2, "KIR2DL1 alelo 1": "KIR2DL1*00101",
+        "KIR2DL1 alelo 2": "KIR2DL1*00201",
+        "copy_number_KIR2DL2": 1, "KIR2DL2 alelo 1": "KIR2DL2*00101",
+    }])
+    p = tmp_path / "planilha.csv"
+    df.to_csv(p, index=False)
+
+    out = load_sources([p])
+    r1 = out[(out["sample"] == "S1") & (out["locus"] == "KIR2DL1")].iloc[0]
+    assert r1["tool"] == "kir-mapper" and r1["copy_number"] == 2 and r1["n_candidates"] == 1
+    r2 = out[(out["sample"] == "S1") & (out["locus"] == "KIR2DL2")].iloc[0]
+    assert r2["copy_number"] == 1 and r2["n_candidates"] == 1
+
+
+def test_layout_locus_unico_pelo_nome_do_arquivo(tmp_path):
+    """Formato do kir-mapper: um arquivo por gene, sem o locus no cabecalho."""
+    df = pd.DataFrame([{
+        "Sample": "S1", "Copy_number": 2, "Calls": "KIR3DL3*00901+KIR3DL3*00906",
+        "Ratio": 0.98, "Missings": 0,
+    }])
+    p = tmp_path / "KIR3DL3.calls.txt"
+    df.to_csv(p, sep="\t", index=False)
+
+    out = load_sources([p])
+    assert len(out) == 1
+    row = out.iloc[0]
+    assert row["locus"] == "KIR3DL3" and row["tool"] == "kir-mapper"
+    assert row["copy_number"] == 2 and row["n_candidates"] == 1
+
+
+def test_layout_deslocamento_de_cabecalho(tmp_path):
+    """Cabecalho sem a celula vazia do canto: comeca ja com um locus na coluna 0,
+    enquanto a coluna 0 dos dados tem o ID da amostra. Sem a correcao de
+    header_offset, os alelos seriam atribuidos ao gene errado."""
+    grade = pd.DataFrame([
+        ["KIR2DL1", "KIR2DL2", "KIR2DL3", None],
+        ["S1", "KIR2DL1*00101", "KIR2DL2*00101", "KIR2DL3*00101"],
+    ])
+    p = tmp_path / "deslocada.xlsx"
+    grade.to_excel(p, header=False, index=False)
+
+    out = load_sources([p])
+    for locus in ("KIR2DL1", "KIR2DL2", "KIR2DL3"):
+        row = out[(out["sample"] == "S1") & (out["locus"] == locus)].iloc[0]
+        assert str(next(iter(row["genotypes"]))[0]) == f"{locus}*00101"
+
+
+# ------------------------------------------------------------ validacao
+
+def test_chi2_sf_contra_valores_de_referencia():
+    # qui-quadrado: pontos de corte tabelados para p=0.05
+    assert abs(_chi2_sf(3.841459, 1) - 0.05) < 1e-3
+    assert abs(_chi2_sf(5.991465, 2) - 0.05) < 1e-3
+    assert abs(_chi2_sf(9.487729, 4) - 0.05) < 1e-3
+    assert _chi2_sf(0.0, 1) == 1.0
+
+
+def test_carregar_verdade_formato_genotype(tmp_path):
+    p = tmp_path / "verdade.tsv"
+    p.write_text("sample\tlocus\tgenotype\nS1\tKIR2DL1\tKIR2DL1*00101+KIR2DL1*00201\n")
+    verdade = carregar_verdade(p)
+    esperado = make_genotype([Allele.parse("KIR2DL1*00101"), Allele.parse("KIR2DL1*00201")])
+    assert verdade[("S1", "KIR2DL1")] == esperado
