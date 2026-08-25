@@ -43,12 +43,14 @@ jobs:
           cp assets/logo.jpeg _site/logo.jpeg
           cp src/kirsolve/*.py _site/src/kirsolve/
 
-      # enablement: true habilita o Pages via API na primeira execucao, sem
-      # depender do passo manual Settings -> Pages -> Source: GitHub Actions.
+      # O GITHUB_TOKEN padrao nao tem permissao para CRIAR o site do Pages
+      # (isso e restricao do GitHub, nao contorna via workflow) - so para
+      # consultar um site que ja exista. Por isso o Pages precisa ser
+      # habilitado uma vez, manualmente, em Settings > Pages > Source:
+      # GitHub Actions. Depois desse passo unico, esta etapa funciona sozinha
+      # em todo push seguinte.
       - name: Configurar Pages
         uses: actions/configure-pages@v5
-        with:
-          enablement: true
 
       - name: Publicar artefato
         uses: actions/upload-pages-artifact@v3
